@@ -13,13 +13,12 @@ namespace Grax.Text
         static readonly Dictionary<Type, Func<object, string, object>> _fetchers = new Dictionary<Type, Func<object, string, object>>();
         static readonly Expression<Func<object>> _getValueDictionaryFunction = () => GetDictionaryValueOrDefault<object>(null, null);
         static readonly MethodInfo _getValueDictionaryFunctionMethodInfo = (_getValueDictionaryFunction.Body as MethodCallExpression).Method.GetGenericMethodDefinition();
+        const string IfpPrefix = "i.";
 
         readonly object _instance;
 
         public InterpolationFormatProvider() { }
         public InterpolationFormatProvider(object instance) { _instance = instance; }
-
-        public bool ConvertNullsToEmptyStrings { get; set; }
 
         public object GetFormat(Type formatType)
         {
@@ -28,20 +27,19 @@ namespace Grax.Text
 
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
-            if (arg == null)
-            {
-                if (ConvertNullsToEmptyStrings) { return ""; }
+            if (arg == null) { return ""; }
 
-                throw new ArgumentException("arg cannot be null", "arg");
-            }
+            var forceIfp = (format ?? "").StartsWith(IfpPrefix);
 
-            if (arg is IFormattable && arg != _instance)
+            if (arg is IFormattable && arg != _instance && !forceIfp)
             {
                 format = string.IsNullOrEmpty(format) ? "{0}" : "{0:" + format + "}";
                 return string.Format(format, arg);
             }
             else
             {
+                if (forceIfp) { format = format.Substring(IfpPrefix.Length); }
+
                 return GetPropertyValueAndFormat(arg, format, formatProvider);
             }
         }
@@ -73,7 +71,7 @@ namespace Grax.Text
                 formatProvider = null;
             }
 
-            return string.Format(formatProvider, format ?? "{0}", value);
+            return string.Format(formatProvider, format ?? "{0}", value ?? "");
         }
 
         private static object GetPropertyValue(object arg, string propertyName)

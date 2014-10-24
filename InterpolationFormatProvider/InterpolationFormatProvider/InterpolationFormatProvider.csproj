@@ -8,7 +8,7 @@
     <ProjectGuid>{F590ACAA-415B-4BDE-8841-FE7E87BCB77A}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>InterpolationFormatProvider</RootNamespace>
+    <RootNamespace>Grax.Text</RootNamespace>
     <AssemblyName>InterpolationFormatProvider</AssemblyName>
     <DefaultLanguage>en-US</DefaultLanguage>
     <FileAlignment>512</FileAlignment>
@@ -37,6 +37,7 @@
     <!-- A reference to the entire .NET Framework is automatically included -->
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InterpolationExtensions.cs" />
     <Compile Include="InterpolationFormatProvider.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
