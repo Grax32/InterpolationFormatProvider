@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Globalization;
 using System.Linq;
 using System.Linq.Expressions;
@@ -13,6 +14,10 @@ namespace Grax.Text
         static readonly Dictionary<Type, Func<object, string, object>> _fetchers = new Dictionary<Type, Func<object, string, object>>();
         static readonly Expression<Func<object>> _getValueDictionaryFunction = () => GetDictionaryValueOrDefault<object>(null, null);
         static readonly MethodInfo _getValueDictionaryFunctionMethodInfo = (_getValueDictionaryFunction.Body as MethodCallExpression).Method.GetGenericMethodDefinition();
+
+        static readonly Expression<Func<object>> _getValueExpandoObjectFn = () => GetExpandoObjectValueOrDefault(null, null);
+        static readonly MethodInfo _getValueExpandoObjectFnMethodInfo = (_getValueExpandoObjectFn.Body as MethodCallExpression).Method;
+
         const string IfpPrefix = "i.";
 
         readonly object _instance;
@@ -98,6 +103,12 @@ namespace Grax.Text
 
                     body = Expression.Call(null, method, argExpressionOfType, propertyNameExpression);
                 }
+                else if (type.Equals(typeof(ExpandoObject)))
+                {
+                    var method = _getValueExpandoObjectFnMethodInfo;
+
+                    body = Expression.Call(null, method, argExpressionOfType, propertyNameExpression);
+                }
                 else
                 {
                     var propertiesAndFields = type
@@ -128,6 +139,12 @@ namespace Grax.Text
             }
 
             return result;
+        }
+
+        static object GetExpandoObjectValueOrDefault(ExpandoObject arg, string key)
+        {
+            object val;
+            return ((IDictionary<string, object>) arg).TryGetValue(key, out val) ? val : null;
         }
     }
 }
