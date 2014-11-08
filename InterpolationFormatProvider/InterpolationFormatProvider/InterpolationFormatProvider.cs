@@ -28,6 +28,7 @@ namespace Grax.Text
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
             if (arg == null) { return ""; }
+            if (formatProvider == null) { formatProvider = this; }
 
             var forceIfp = (format ?? "").StartsWith(IfpPrefix);
 
