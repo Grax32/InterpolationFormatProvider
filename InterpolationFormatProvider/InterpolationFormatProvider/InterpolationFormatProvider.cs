@@ -15,9 +15,6 @@ namespace Grax.Text
         static readonly Expression<Func<object>> _getValueDictionaryFunction = () => GetDictionaryValueOrDefault<object>(null, null);
         static readonly MethodInfo _getValueDictionaryFunctionMethodInfo = (_getValueDictionaryFunction.Body as MethodCallExpression).Method.GetGenericMethodDefinition();
 
-        static readonly Expression<Func<object>> _getValueExpandoObjectFn = () => GetExpandoObjectValueOrDefault(null, null);
-        static readonly MethodInfo _getValueExpandoObjectFnMethodInfo = (_getValueExpandoObjectFn.Body as MethodCallExpression).Method;
-
         const string IfpPrefix = "i.";
 
         readonly object _instance;
@@ -80,6 +77,28 @@ namespace Grax.Text
             return string.Format(formatProvider, format ?? "{0}", value ?? "");
         }
 
+        private static bool ImplementsIDictionaryStringSomething(Type type)
+        {
+            return type.GetInterfaces().Any(v =>
+                v.IsGenericType &&
+                v.GetGenericTypeDefinition() == typeof(IDictionary<,>) &&
+                v.GetGenericArguments().First() == typeof(string)
+                );
+
+        }
+
+        private static Type FetchGenericArgumentType(Type type)
+        {
+            return type.GetInterfaces().Where(v =>
+                v.IsGenericType &&
+                v.GetGenericTypeDefinition() == typeof(IDictionary<,>) &&
+                v.GetGenericArguments().First() == typeof(string)
+                )
+                .Select(v => v.GetGenericArguments()[1])
+                .OrderBy(v => v == typeof(object) ? 99999 : 1)  // if more than one interface matches, prefer one where the value is not of type object
+                .First();
+        }
+
         private static object GetPropertyValue(object arg, string propertyName)
         {
             var type = arg.GetType();
@@ -97,15 +116,10 @@ namespace Grax.Text
                 var propertyNameExpression = Expression.Parameter(typeof(string), "propertyName");
                 Expression body;
 
-                if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(Dictionary<,>) && type.GetGenericArguments().First() == typeof(string))
+                if (ImplementsIDictionaryStringSomething(type))
                 {
-                    var method = _getValueDictionaryFunctionMethodInfo.MakeGenericMethod(type.GetGenericArguments()[1]);
-
-                    body = Expression.Call(null, method, argExpressionOfType, propertyNameExpression);
-                }
-                else if (type.Equals(typeof(ExpandoObject)))
-                {
-                    var method = _getValueExpandoObjectFnMethodInfo;
+                    var propertyType = FetchGenericArgumentType(type);
+                    var method = _getValueDictionaryFunctionMethodInfo.MakeGenericMethod(propertyType);
 
                     body = Expression.Call(null, method, argExpressionOfType, propertyNameExpression);
                 }
@@ -130,7 +144,7 @@ namespace Grax.Text
             return fetcher(arg, propertyName);
         }
 
-        static object GetDictionaryValueOrDefault<T>(Dictionary<string, T> dictionary, string key)
+        static object GetDictionaryValueOrDefault<T>(IDictionary<string, T> dictionary, string key)
         {
             var result = default(T);
             if (!dictionary.TryGetValue(key, out result))
@@ -139,12 +153,6 @@ namespace Grax.Text
             }
 
             return result;
-        }
-
-        static object GetExpandoObjectValueOrDefault(ExpandoObject arg, string key)
-        {
-            object val;
-            return ((IDictionary<string, object>) arg).TryGetValue(key, out val) ? val : null;
         }
     }
 }

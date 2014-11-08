@@ -10,7 +10,7 @@ namespace Grax.Text
 
         public static string ToInterpolatedString(this string pattern, params object[] args)
         {
-            return new InterpolationFormatProvider().Format(pattern, args, null);
+            return string.Format(new InterpolationFormatProvider(), pattern, args);
         }
     }
 }

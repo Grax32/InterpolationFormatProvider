@@ -14,7 +14,7 @@ namespace InterpolationFormatProviderTests
     public class UnitTest1
     {
         [TestMethod]
-        public void Test40()
+        public void Test45()
         {
             var data = new Dictionary<string, DateTime> 
             { 
@@ -63,15 +63,24 @@ namespace InterpolationFormatProviderTests
             var result10 = string.Format(new InterpolationFormatProvider(), "{0}", DateTime.Now);
             Assert.IsTrue(result10.Length > 0);
 
+
+
         }
 
         [TestMethod]
-        public void Test40Expando()
+        public void Test45Expando()
         {
             dynamic d = new ExpandoObject();
             d.Location = "World";
 
-            var str = "Hello, {0:Location}".ToInterpolatedString((object)d);  // returns "Hello, World"
+            var str = "Hello, {0:Location}{0:Unknown}".ToInterpolatedString((object)d);  // returns "Hello, World"
+
+            Assert.AreEqual("Hello, World", str);
+
+            dynamic x = new ExpandoObject();
+            x.Location = "World";
+
+            str = "Hello, {0:Location}{0:Unknown}".ToInterpolatedString((object)x);  // returns "Hello, World"
 
             Assert.AreEqual("Hello, World", str);
         }
@@ -102,6 +111,6 @@ namespace InterpolationFormatProviderTests
             }
         }
 
-
+       
     }
 }

@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 
-namespace Grax.Text
+namespace Grax.Text.Conceptual
 {
     public static class InterpolationExtensions
     {
