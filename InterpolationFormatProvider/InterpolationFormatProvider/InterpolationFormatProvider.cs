@@ -1,26 +1,34 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Dynamic;
-using System.Globalization;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
-using System.Text;
 
-namespace Grax.Text
+namespace Grax32
 {
     public class InterpolationFormatProvider : IFormatProvider, ICustomFormatter
     {
-        static readonly Dictionary<Type, Func<object, string, object>> _fetchers = new Dictionary<Type, Func<object, string, object>>();
-        static readonly Expression<Func<object>> _getValueDictionaryFunction = () => GetDictionaryValueOrDefault<object>(null, null);
-        static readonly MethodInfo _getValueDictionaryFunctionMethodInfo = (_getValueDictionaryFunction.Body as MethodCallExpression).Method.GetGenericMethodDefinition();
+        private static readonly Dictionary<Type, Func<object, string, object>> Fetchers =
+            new Dictionary<Type, Func<object, string, object>>();
 
-        const string IfpPrefix = "i.";
+        private static readonly Expression<Func<object>> GetValueDictionaryFunction =
+            () => GetDictionaryValueOrDefault<object>(null, null);
 
-        readonly object _instance;
+        private static readonly MethodInfo GetValueDictionaryFunctionMethodInfo =
+            (GetValueDictionaryFunction.Body as MethodCallExpression)?.Method.GetGenericMethodDefinition();
 
-        public InterpolationFormatProvider() { }
-        public InterpolationFormatProvider(object instance) { _instance = instance; }
+        private const string IfpPrefix = "i.";
+        private readonly object _instance;
+
+        public InterpolationFormatProvider()
+        {
+        }
+
+        public InterpolationFormatProvider(object instance)
+        {
+            _instance = instance;
+        }
 
         public object GetFormat(Type formatType)
         {
@@ -29,8 +37,15 @@ namespace Grax.Text
 
         public string Format(string format, object arg, IFormatProvider formatProvider)
         {
-            if (arg == null) { return ""; }
-            if (formatProvider == null) { formatProvider = this; }
+            if (arg == null)
+            {
+                return "";
+            }
+
+            if (formatProvider == null)
+            {
+                formatProvider = this;
+            }
 
             var forceIfp = (format ?? "").StartsWith(IfpPrefix);
 
@@ -39,23 +54,26 @@ namespace Grax.Text
                 format = string.IsNullOrEmpty(format) ? "{0}" : "{0:" + format + "}";
                 return string.Format(format, arg);
             }
-            else
-            {
-                if (forceIfp) { format = format.Substring(IfpPrefix.Length); }
 
-                return GetPropertyValueAndFormat(arg, format, formatProvider);
+            if (forceIfp)
+            {
+                format = format.Substring(IfpPrefix.Length);
             }
+
+            return GetPropertyValueAndFormat(arg, format, formatProvider);
         }
 
         private static string GetPropertyValueAndFormat(object arg, string propertyName, IFormatProvider formatProvider)
         {
             object value;
             string format = null;
+
             if (propertyName == null)
             {
                 return arg.ToString();
             }
-            else if (propertyName.Contains(":"))
+
+            if (propertyName.Contains(":"))
             {
                 var firstColon = propertyName.IndexOf(':');
 
@@ -83,19 +101,22 @@ namespace Grax.Text
                 v.IsGenericType &&
                 v.GetGenericTypeDefinition() == typeof(IDictionary<,>) &&
                 v.GetGenericArguments().First() == typeof(string)
-                );
-
+            );
         }
 
         private static Type FetchGenericArgumentType(Type type)
         {
-            return type.GetInterfaces().Where(v =>
-                v.IsGenericType &&
-                v.GetGenericTypeDefinition() == typeof(IDictionary<,>) &&
-                v.GetGenericArguments().First() == typeof(string)
+            return type.GetInterfaces()
+                .Where(v =>
+                    v.IsGenericType &&
+                    v.GetGenericTypeDefinition() == typeof(IDictionary<,>) &&
+                    v.GetGenericArguments().First() == typeof(string)
                 )
                 .Select(v => v.GetGenericArguments()[1])
-                .OrderBy(v => v == typeof(object) ? 99999 : 1)  // if more than one interface matches, prefer one where the value is not of type object
+                .OrderBy(v =>
+                    v == typeof(object)
+                        ? 99999
+                        : 1) // if more than one interface matches, prefer one where the value is not of type object
                 .First();
         }
 
@@ -103,51 +124,66 @@ namespace Grax.Text
         {
             var type = arg.GetType();
 
-            Func<object, string, object> fetcher;
-            if (_fetchers.TryGetValue(type, out fetcher))
+            if (Fetchers.TryGetValue(type, out var fetcher))
             {
                 return fetcher(arg, propertyName);
             }
+
+            var argExpression = Expression.Parameter(typeof(object), "arg");
+            var argExpressionOfType = Expression.Convert(argExpression, type);
+
+            var propertyNameExpression = Expression.Parameter(typeof(string), "propertyName");
+            Expression body;
+
+            if (ImplementsIDictionaryStringSomething(type))
+            {
+                var propertyType = FetchGenericArgumentType(type);
+                var method = GetValueDictionaryFunctionMethodInfo.MakeGenericMethod(propertyType);
+
+                body = Expression.Call(null, method, argExpressionOfType, propertyNameExpression);
+            }
             else
             {
-                var argExpresson = Expression.Parameter(typeof(object), "arg");
-                var argExpressionOfType = Expression.Convert(argExpresson, type);
+                var propertiesAndFields = type
+                    .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
+                    .Where(x => x.GetIndexParameters().Length == 0)
+                    .Select(v => new
+                    {
+                        v.Name,
+                        Expression = Expression.Convert(Expression.Property(argExpressionOfType, v.Name),
+                            typeof(object))
+                    })
+                    .Union(type
+                        .GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy)
+                        .Select(v => new
+                        {
+                            v.Name,
+                            Expression = Expression.Convert(Expression.Field(argExpressionOfType, v.Name),
+                                typeof(object))
+                        }));
 
-                var propertyNameExpression = Expression.Parameter(typeof(string), "propertyName");
-                Expression body;
+                var defaultSwitchBlock =
+                    Expression.Convert(Expression.Constant("", typeof(string)), typeof(object));
 
-                if (ImplementsIDictionaryStringSomething(type))
-                {
-                    var propertyType = FetchGenericArgumentType(type);
-                    var method = _getValueDictionaryFunctionMethodInfo.MakeGenericMethod(propertyType);
-
-                    body = Expression.Call(null, method, argExpressionOfType, propertyNameExpression);
-                }
-                else
-                {
-                    var propertiesAndFields = type
-                        .GetProperties(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy).Select(v => new { Name = v.Name, Expression = Expression.Convert(Expression.Property(argExpressionOfType, v.Name), typeof(object)) })
-                        .Union(type.GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.FlattenHierarchy).Select(v => new { Name = v.Name, Expression = Expression.Convert(Expression.Field(argExpressionOfType, v.Name), typeof(object)) }));
-
-                    var defaultSwitchBlock = Expression.Convert(Expression.Constant("", typeof(string)), typeof(object));
-
-                    body = Expression.Switch(propertyNameExpression,
-                        defaultSwitchBlock,
-                        propertiesAndFields.Select(v => Expression.SwitchCase(v.Expression, Expression.Constant(v.Name))).ToArray());
-                }
-
-                var fetcherExpression = Expression.Lambda<Func<object, string, object>>(body, argExpresson, propertyNameExpression);
-                fetcher = fetcherExpression.Compile();
-                _fetchers[type] = fetcher;
+                body = Expression.Switch(propertyNameExpression,
+                    defaultSwitchBlock,
+                    propertiesAndFields
+                        .Select(v => Expression.SwitchCase(v.Expression, Expression.Constant(v.Name))).ToArray());
             }
+
+            var fetcherExpression =
+                Expression.Lambda<Func<object, string, object>>(body, argExpression, propertyNameExpression);
+            
+            fetcher = fetcherExpression.Compile();
+            
+            Fetchers[type] = fetcher;
 
             return fetcher(arg, propertyName);
         }
 
-        static object GetDictionaryValueOrDefault<T>(IDictionary<string, T> dictionary, string key)
+        private static object GetDictionaryValueOrDefault<T>(IDictionary<string, T> dictionary, string key)
         {
-            var result = default(T);
-            if (!dictionary.TryGetValue(key, out result))
+            if (!dictionary.TryGetValue(key, out var result))
             {
                 return null;
             }

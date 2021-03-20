@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Text;
-using Grax.Text;
+using Grax32;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace InterpolationFormatProviderTests

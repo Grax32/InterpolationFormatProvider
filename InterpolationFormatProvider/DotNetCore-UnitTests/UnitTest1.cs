@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Dynamic;
 using System.Linq;
 using System.Text;
-using Grax.Text;
 using Grax32;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -14,8 +13,14 @@ namespace InterpolationFormatProviderTests
     [TestClass]
     public class UnitTest1
     {
+        class TestThingy
+        {
+            public int SomeNum { get; set; }
+            public int OtherNum { get; set; }
+        }
+        
         [TestMethod]
-        public void Test40()
+        public void Test45()
         {
             var data = new Dictionary<string, DateTime> 
             { 
@@ -64,15 +69,24 @@ namespace InterpolationFormatProviderTests
             var result10 = string.Format(new InterpolationFormatProvider(), "{0}", DateTime.Now);
             Assert.IsTrue(result10.Length > 0);
 
+
+
         }
 
         [TestMethod]
-        public void Test40Expando()
+        public void Test45Expando()
         {
             dynamic d = new ExpandoObject();
             d.Location = "World";
 
-            var str = "Hello, {0:Location}".ToInterpolatedString((object)d);  // returns "Hello, World"
+            var str = "Hello, {0:Location}{0:Unknown}".ToInterpolatedString((object)d);  // returns "Hello, World"
+
+            Assert.AreEqual("Hello, World", str);
+
+            dynamic x = new ExpandoObject();
+            x.Location = "World";
+
+            str = "Hello, {0:Location}{0:Unknown}".ToInterpolatedString((object)x);  // returns "Hello, World"
 
             Assert.AreEqual("Hello, World", str);
         }
@@ -90,7 +104,7 @@ namespace InterpolationFormatProviderTests
 
             public string ToString(string format, IFormatProvider formatProvider)
             {
-                formatProvider = formatProvider ?? new InterpolationFormatProvider(this);
+                formatProvider ??= new InterpolationFormatProvider(this);
                 var customFormatProvider = formatProvider as ICustomFormatter;
                 if (customFormatProvider != null)
                 {
@@ -103,6 +117,6 @@ namespace InterpolationFormatProviderTests
             }
         }
 
-
+       
     }
 }

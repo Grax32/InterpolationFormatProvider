@@ -3,11 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
 VisualStudioVersion = 12.0.30723.0
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterpolationFormatProvider", "InterpolationFormatProvider\InterpolationFormatProvider.csproj", "{F590ACAA-415B-4BDE-8841-FE7E87BCB77A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterpolationFormatProvider", "InterpolationFormatProvider\InterpolationFormatProvider.csproj", "{4A2E1C5B-77C0-4F90-9C64-107B9829E58A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterpolationFormatProviderTests", "InterpolationFormatProviderTests\InterpolationFormatProviderTests.csproj", "{E64A3B80-B429-40CB-9893-B9A58D342178}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCore-UnitTests", "DotNetCore-UnitTests\DotNetCore-UnitTests.csproj", "{FFB1375C-60AE-41C4-9098-A58F1A116AD0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InterpolationFormatProvider45Tests", "InterpolationFormatProvider45Tests\InterpolationFormatProvider45Tests.csproj", "{D58ABF5E-2EEA-45A8-9862-2694F92C4124}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetCore31-UnitTests", "DotNetCore31-UnitTests\DotNetCore31-UnitTests.csproj", "{28D506B1-9774-4D8B-B576-AB3522BD9C67}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,14 +19,18 @@ Global
 		{F590ACAA-415B-4BDE-8841-FE7E87BCB77A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F590ACAA-415B-4BDE-8841-FE7E87BCB77A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F590ACAA-415B-4BDE-8841-FE7E87BCB77A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{E64A3B80-B429-40CB-9893-B9A58D342178}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E64A3B80-B429-40CB-9893-B9A58D342178}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E64A3B80-B429-40CB-9893-B9A58D342178}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E64A3B80-B429-40CB-9893-B9A58D342178}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D58ABF5E-2EEA-45A8-9862-2694F92C4124}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D58ABF5E-2EEA-45A8-9862-2694F92C4124}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D58ABF5E-2EEA-45A8-9862-2694F92C4124}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D58ABF5E-2EEA-45A8-9862-2694F92C4124}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4A2E1C5B-77C0-4F90-9C64-107B9829E58A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4A2E1C5B-77C0-4F90-9C64-107B9829E58A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4A2E1C5B-77C0-4F90-9C64-107B9829E58A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4A2E1C5B-77C0-4F90-9C64-107B9829E58A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FFB1375C-60AE-41C4-9098-A58F1A116AD0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FFB1375C-60AE-41C4-9098-A58F1A116AD0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FFB1375C-60AE-41C4-9098-A58F1A116AD0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FFB1375C-60AE-41C4-9098-A58F1A116AD0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{28D506B1-9774-4D8B-B576-AB3522BD9C67}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{28D506B1-9774-4D8B-B576-AB3522BD9C67}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{28D506B1-9774-4D8B-B576-AB3522BD9C67}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{28D506B1-9774-4D8B-B576-AB3522BD9C67}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
